@@ -1,69 +1,60 @@
-import React from 'react';
+// Complete Pizza Tycoon Game Code
 
-class PizzaTycoon extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      money: 100,  // Starting money
-      pizzasSold: 0,
-      pizzaPrice: 10,
-      ingredients: { cheese: 10, tomato: 10, pepperoni: 10 },
-      customers: 0,
+import React, { useState, useEffect } from 'react';
+import './App.css';
+
+function App() {
+    const [money, setMoney] = useState(100);
+    const [pizzaCount, setPizzaCount] = useState(0);
+    const [upgrades, setUpgrades] = useState({
+        oven: false,
+        manager: false
+    });
+
+    // Save system
+    useEffect(() => {
+        const savedGame = localStorage.getItem('pizzaTycoonSave');
+        if (savedGame) {
+            const gameData = JSON.parse(savedGame);
+            setMoney(gameData.money);
+            setPizzaCount(gameData.pizzaCount);
+            setUpgrades(gameData.upgrades);
+        }
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem('pizzaTycoonSave', JSON.stringify({ money, pizzaCount, upgrades }));
+    }, [money, pizzaCount, upgrades]);
+
+    const makePizza = () => {
+        setPizzaCount(pizzaCount + 1);
+        setMoney(money + 5);
     };
-  }
 
-  sellPizza = () => {
-    if (this.state.money >= this.state.pizzaPrice && this.state.ingredients.cheese >= 1 && this.state.ingredients.tomato >= 1) {
-      this.setState((prevState) => ({
-        money: prevState.money + prevState.pizzaPrice,
-        pizzasSold: prevState.pizzasSold + 1,
-        ingredients: {
-          ...prevState.ingredients,
-          cheese: prevState.ingredients.cheese - 1,
-          tomato: prevState.ingredients.tomato - 1,
-        },
-        customers: prevState.customers + 1,
-      }));
-    } else {
-      alert('Not enough resources to sell a pizza!');
-    }
-  };
+    const buyUpgrade = (type) => {
+        if (type === 'oven' && money >= 50) {
+            setMoney(money - 50);
+            setUpgrades({ ...upgrades, oven: true });
+        }
+        if (type === 'manager' && money >= 100) {
+            setMoney(money - 100);
+            setUpgrades({ ...upgrades, manager: true });
+        }
+    };
 
-  buyIngredients = (ingredient) => {
-    const cost = 5;  // Cost per ingredient
-    if (this.state.money >= cost) {
-      this.setState((prevState) => ({
-        money: prevState.money - cost,
-        ingredients: {
-          ...prevState.ingredients,
-          [ingredient]: prevState.ingredients[ingredient] + 1,
-        },
-      }));
-    } else {
-      alert('Not enough money to buy ingredients!');
-    }
-  };
-
-  render() {
     return (
-      <div>
-        <h1>Pizza Tycoon Game</h1>
-        <h2>Money: ${this.state.money}</h2>
-        <h2>Pizzas Sold: {this.state.pizzasSold}</h2>
-        <h2>Ingredients:</h2>
-        <ul>
-          <li>Cheese: {this.state.ingredients.cheese}</li>
-          <li>Tomato: {this.state.ingredients.tomato}</li>
-          <li>Pepperoni: {this.state.ingredients.pepperoni}</li>
-        </ul>
-        <button onClick={this.sellPizza}>Sell Pizza</button>
-        <h2>Buy Ingredients</h2>
-        <button onClick={() => this.buyIngredients('cheese')}>Buy Cheese</button>
-        <button onClick={() => this.buyIngredients('tomato')}>Buy Tomato</button>
-        <button onClick={() => this.buyIngredients('pepperoni')}>Buy Pepperoni</button>
-      </div>
+        <div className="App">
+            <h1>Pizza Tycoon Game</h1>
+            <h2>Money: ${money}</h2>
+            <h2>Pizzas Made: {pizzaCount}</h2>
+            <button onClick={makePizza}>Make Pizza</button>
+            <div>
+                <h3>Upgrades</h3>
+                <button onClick={() => buyUpgrade('oven')} disabled={upgrades.oven}>Buy Oven (Cost: $50)</button>
+                <button onClick={() => buyUpgrade('manager')} disabled={upgrades.manager}>Hire Manager (Cost: $100)</button>
+            </div>
+        </div>
     );
-  }
 }
 
-export default PizzaTycoon;
+export default App;
